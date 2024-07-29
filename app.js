@@ -1,8 +1,10 @@
 var express = require("express")
 var app = express()
 var router = express.Router()
-var { registro, inicio, registrarUsuario } = require("./usuario/casosDeUso/registro")
-const { tarea } = require("./tareas/casosDeUso/tareas")
+const jwt = require("jsonwebtoken")
+const secretkey = "secret"
+var { registro, inicio, registrarUsuario, inicioSesion } = require("./usuarios/casosDeUso/usuarios")
+const { crearTarea, consultarTareas, consultarTareaId, actualizarTarea, elminarTarea } = require("./tareas/casosDeUso/tareas")
 app.use(express.json())
 
 
@@ -25,21 +27,98 @@ router.post("/registro", (request, response) => {
     return response.status(201).json({ "mensaje": "Cliente creado" })
 })
 
-router.get("/inicio", (request, response) => {
-    inicioSesion({
-        "correo": request.body.correo,
-        "contrasena": request.body.contrasena
-    })
-    return response.status(200).json({ "mensaje": "Ingreso con Exito" })
+router.post("/inicio", async (request, response) => {
+    try {
+        var usuario = {
+            "correo": request.body.correo,
+            "contrasena": request.body.contrasena
+        }
+        var usuarioAlmacenado = await inicioSesion({ usuario })
+        console.log(usuarioAlmacenado)
+        return response.status(200).json({ usuarioAlmacenado })
+    } catch (error) {
+        console.log(error)
+        if (error == "los campos contraseña y correo son requeridos") {
+            return response.status(400).json({ "mensaje": error })
+        }
+        if (error == "contraseña incorrecta") {
+            return response.status(401).json({ "mensaje": error })
+        }
+        if (error == "usuario no encontrado") {
+            return response.status(401).json({ "mensaje": error })
+        }
+        return response.status(404).json({ "mensaje": "Error interno del servidor" })
+    }
 })
+function vericaToken(request, response, next) {
+    const encabezados = request.header("Authorization") || ""
+    const token = encabezados.split(" ")[1]
 
-router.post("/tareas", (request, response) => {
+    if (!token) {
+        return response.status(401).json({ "mensaje": "token no proporcionado" })
+    }
+    try {
+        const infoToken = jwt.verify(token, secretkey)
+        request.id = infoToken.id
+        next()
+    } catch (error) {
+        return response.status(403).json({ "mensaje": " token no valido" })
+    }
+}
+
+
+
+
+router.post("/tareas", vericaToken, (request, response) => {
     crearTarea({
+        "idUsuario": request.id,
         "titulo": request.body.titulo,
         "descripcion": request.body.descripcion,
         "fechaVencimiento": request.body.fechaVencimiento,
     })
     return response.status(201).json({ "mensaje": "Tarea creada" })
+})
+
+router.get("/tareas", vericaToken, async (req, resp) => {
+    var idUsuario = req.id                                                          //configurar parametros de ruta en consultas
+    var response = await consultarTareas(idUsuario)
+    return resp.status(200).json({ "mensaje": response })
+})
+
+
+router.get("/tareas/:id", vericaToken, async (req, resp) => {      //configurar parametros de ruta en consultas
+    var id = req.params.id
+    var idUsuario = req.id
+    try {                                             // try / carch controla la excepcion 
+        var respuesta = await consultarTareaId({ id, idUsuario })
+        console.log(respuesta)
+        return resp.status(200).json({ "mensaje": respuesta })
+    } catch (error) {
+        if (error == "tarea no encontrada") {
+            return resp.status(404).json({ "mensaje": `Tarea no encontrada` })
+        }
+        console.log(error)
+        return resp.status(404).json({ "mensaje": `Error interno del servidor` })
+    }
+})
+
+router.patch("/tareas/:id", vericaToken, async (request, response) => {
+    var id = request.params.id
+    var nuevaTarea = {
+        "idUsuario": request.id,
+        "estado": request.body.estado,
+        "titulo": request.body.titulo,
+        "descripcion": request.body.descripcion,
+        "fechaVencimiento": request.body.fechaVencimiento,
+    }
+    var respuesta = await actualizarTarea({ id, nuevaTarea })
+    return response.status(201).json({ "Tarea actualizada": respuesta })
+})
+
+router.delete("/tareas/:id", async (request, response) => {
+    var id = request.params.id
+    var respuesta = await elminarTarea({ id })
+    return response.status(201).json({ "mensaje": "Tarea eliminada" })
 })
 
 
