@@ -45,13 +45,20 @@ const obtenerTareaPorId = async ({ id, idUsuario }) => {
 const actualizar = async ({ id, nuevaTarea }) => {
     console.log(nuevaTarea)
     var actualizar = await Model.updateOne({ _id: id }, { $set: nuevaTarea })
-    return actualizar
+    if (actualizar == 0) {
+        return undefined
+    }
+    return actualizar[0]
 
 }
 
 const eliminar = async ({ id, idUsuario }) => {
     var eliminada = await Model.deleteOne({ _id: id, idUsuario })
-    return eliminada
+    if (eliminada == 0) {
+        return undefined
+    }
+    console.log(eliminada)
+    return eliminada[0]
 }
 
 

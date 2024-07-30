@@ -30,14 +30,24 @@ async function consultarTareaId({ id, idUsuario }) {    // agregar paginacion
     return respuesta
 }
 
-function actualizarTarea({ id, nuevaTarea }) {
+async function actualizarTarea({ id, nuevaTarea }) {
     console.log(nuevaTarea)
-    return actualizar({ id, nuevaTarea })
+    var respuesta = await actualizar({ id, nuevaTarea })
+    if (respuesta == undefined) {
+        throw "Tarea con Id no esta creada"
+    }
+    return respuesta
 
 }
 
-function elminarTarea({ id, idUsuario }) {
-    return eliminar({ id, idUsuario })
+async function elminarTarea({ id, idUsuario }) {
+    var respuesta = await eliminar({ id, idUsuario })
+    if (respuesta == undefined) {
+        throw "Id incorrecto"
+    }
+    console.log("caso de usoooooooooooooooooo")
+    console.log(respuesta)
+    return respuesta
 }
 
 

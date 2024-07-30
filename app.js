@@ -111,14 +111,28 @@ router.patch("/tareas/:id", vericaToken, async (request, response) => {
         "descripcion": request.body.descripcion,
         "fechaVencimiento": request.body.fechaVencimiento,
     }
-    var respuesta = await actualizarTarea({ id, nuevaTarea })
-    return response.status(201).json({ "Tarea actualizada": respuesta })
+    try {
+        var respuesta = await actualizarTarea({ id, nuevaTarea })
+        return response.status(201).json({ "Tarea actualizada": respuesta })
+    } catch (error) {
+        if (error == "Tarea con Id no esta creada") {
+            return response.status(404).json({ "mensaje": "Tarea con Id no esta creada" })
+        }
+    }
 })
 
-router.delete("/tareas/:id", async (request, response) => {
+router.delete("/tareas/:id", vericaToken, async (request, response) => {
     var id = request.params.id
-    var respuesta = await elminarTarea({ id })
-    return response.status(201).json({ "mensaje": "Tarea eliminada" })
+    var idUsuario = request.id
+    try {
+        var respuesta = await elminarTarea({ id, idUsuario })
+        return response.status(201).json({ "mensaje": respuesta })
+    } catch (error) {
+        if (error == "Id incorrecto") {
+            return response.status(404).json({ "mensaje": `Id incorrecto` })
+        }
+    }
+
 })
 
 
