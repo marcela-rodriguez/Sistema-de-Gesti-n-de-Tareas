@@ -18,7 +18,7 @@ router.get("/task", (request, response) => {   // recurso=task metodo= get
     )
 })
 
-router.post("/registro", (request, response) => {
+router.post("/registro", (request, response) => {  //servicio para el registro de usuario
     registrarUsuario({
         "nombre": request.body.nombre,
         "contrasena": request.body.contrasena,
@@ -27,16 +27,16 @@ router.post("/registro", (request, response) => {
     return response.status(201).json({ "mensaje": "Cliente creado" })
 })
 
-router.post("/inicio", async (request, response) => {
-    try {
+router.post("/inicio", async (request, response) => {   //servicio para el inicio de sesion
+    try {                                               //intenta //  control de excepciones 
         var usuario = {
             "correo": request.body.correo,
             "contrasena": request.body.contrasena
         }
-        var usuarioAlmacenado = await inicioSesion({ usuario })
+        var usuarioAlmacenado = await inicioSesion({ usuario })  // await async para manejar procesos asincronos que los convierte a sincronos
         console.log(usuarioAlmacenado)
         return response.status(200).json({ usuarioAlmacenado })
-    } catch (error) {
+    } catch (error) {                                        //capturar //  control de excepciones 
         console.log(error)
         if (error == "los campos contraseña y correo son requeridos") {
             return response.status(400).json({ "mensaje": error })
@@ -50,7 +50,7 @@ router.post("/inicio", async (request, response) => {
         return response.status(404).json({ "mensaje": "Error interno del servidor" })
     }
 })
-function vericaToken(request, response, next) {
+function vericaToken(request, response, next) {     // funcion para la verificacion del token
     const encabezados = request.header("Authorization") || ""
     const token = encabezados.split(" ")[1]
 
@@ -67,7 +67,8 @@ function vericaToken(request, response, next) {
 }
 
 
-
+// se crean los servicios para crear, consultar, eliminar y actualizar tareas
+// tareas con autenticacion para gestionar  únicamente sus propias tareas
 
 router.post("/tareas", vericaToken, (request, response) => {
     crearTarea({
@@ -80,13 +81,13 @@ router.post("/tareas", vericaToken, (request, response) => {
 })
 
 router.get("/tareas", vericaToken, async (req, resp) => {
-    var idUsuario = req.id                                                          //configurar parametros de ruta en consultas
+    var idUsuario = req.id
     var response = await consultarTareas(idUsuario)
     return resp.status(200).json({ "mensaje": response })
 })
 
 
-router.get("/tareas/:id", vericaToken, async (req, resp) => {      //configurar parametros de ruta en consultas
+router.get("/tareas/:id", vericaToken, async (req, resp) => {
     var id = req.params.id
     var idUsuario = req.id
     try {                                             // try / carch controla la excepcion 
@@ -102,7 +103,7 @@ router.get("/tareas/:id", vericaToken, async (req, resp) => {      //configurar 
     }
 })
 
-router.patch("/tareas/:id", vericaToken, async (request, response) => {
+router.put("/tareas/:id", vericaToken, async (request, response) => {
     var id = request.params.id
     var nuevaTarea = {
         "idUsuario": request.id,
