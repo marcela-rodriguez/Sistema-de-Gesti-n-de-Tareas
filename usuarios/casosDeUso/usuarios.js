@@ -1,32 +1,29 @@
-const { consultarUsuario, guardarUsuario } = require("../repositorio/usuarios");
+const { consultarUsuarioPorCorreo, guardarUsuario } = require("../repositorio/usuarios");
+const { crearId } = require("../../utilidades/id")
 const jwt = require("jsonwebtoken")
 const secretkey = "secret"
 
-function crearId({ longitud }) {
-    let resultado = ''
-    const caracteristicas = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-    for (let i = 0; i < longitud; i++) {
-        resultado += caracteristicas.charAt(Math.floor(Math.random() * caracteristicas.longitud));
-    }
-    return resultado;
-}
 
-function registrarUsuario({ nombre, correo, contrasena }) {
-    cliente = {
-        "id": crearId({ "longitud": 5 }),
-        "nombre": nombre,
-        "correo": correo,
-        "contrasena": contrasena
+//se crea funcion para registrar usuario
+async function registrarUsuario({ infoUsuario }) {
+    var validarUsuario = await consultarUsuarioPorCorreo(infoUsuario.correo)
+    if (validarUsuario != undefined) {
+        throw "El correo ya se encuentra registrado"
     }
-    guardarUsuario({ cliente })
+    cliente = {
+        "id": crearId({ longitud: 10 }),
+        "nombre": infoUsuario.nombre,
+        "correo": infoUsuario.correo,
+        "contrasena": infoUsuario.contrasena
+    }
+    return guardarUsuario({ cliente })
 }
 
 async function inicioSesion({ usuario }) {
-    console.log(usuario);
     if (!usuario.correo || !usuario.contrasena) {
         throw "los campos contraseña y correo son requeridos"    // throw envia la exepcion 
     }
-    var usuarioBaseDatos = await consultarUsuario(usuario)
+    var usuarioBaseDatos = await consultarUsuarioPorCorreo(usuario.correo)
 
     if (usuarioBaseDatos == undefined) {
         throw "usuario no encontrado"
