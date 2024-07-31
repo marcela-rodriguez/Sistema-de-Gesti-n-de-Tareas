@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');   // mongose es una libreria para node que nos permite crear consultas para una base de datos MongoDb
 
-mongoose.connect('mongodb://localhost:27017/gestion_de_tareas', {         // conexion a base de datos  llamada gestor de tareas
+mongoose.connect(process.env.MONGO_URL, {         // conexion a base de datos  llamada gestor de tareas
 });
 
 var usuarioSchema = new mongoose.Schema({}, { strict: false, _id: false });   // creamos un esquema 

@@ -7,16 +7,8 @@ var { registro, inicio, registrarUsuario, inicioSesion } = require("./usuarios/c
 const { crearTarea, consultarTareas, consultarTareaId, actualizarTarea, elminarTarea } = require("./tareas/casosDeUso/tareas")
 
 app.use(express.json())
+const PORT = process.env.PORT
 
-
-router.get("/task", (request, response) => {   // recurso=task metodo= get
-    return response.status(200).json( // responde un objeto json, con un status 200
-        {
-            "payload": {},
-            "errors": {}
-        }
-    )
-})
 
 router.post("/registro", async (request, response) => {  //servicio para el registro de usuario
     infoUsuario = {
@@ -154,7 +146,7 @@ router.delete("/tareas/:id", vericaToken, async (request, response) => {
 
 
 app.use(router)
-app.listen(3000, () => {
-    console.log("app en ${3000}")
+app.listen(PORT, () => {
+    console.log("La app se encuentra corriendo ...")
 
 })
